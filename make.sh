@@ -68,9 +68,9 @@ cmd_install () {
     if [[ -d "profiles" ]]; then
         mkdir -p "$CONF/profiles"
         cp profiles/*.conf "$CONF/profiles/"
-        echo "Profiller $CONF/profiles/ dizinine kopyalandı"
+        say ""Profiller $CONF/profiles/ dizinine kopyalandı""
     else
-        echo "UYARI: profiles klasörü bulunamadı"
+        say ""UYARI: profiles klasörü bulunamadı""
     fi
 
     printf "${C_BOLD}- Installing the desktop integration${C_RESET}\n"
@@ -123,3 +123,4 @@ case $1 in
         printf "Use ${C_BOLD}help${C_RESET} command\n"
         exit 1
 esac
+

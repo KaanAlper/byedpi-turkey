@@ -45,7 +45,7 @@ cmd_tun() {
     change_profile $2
     ;;
   *)
-    echo "Invalid argument!"
+    say ""Invalid argument!""
     ;;
   esac
 }
@@ -118,7 +118,7 @@ load_conf() {
 
 start_tunneling() {
   if [[ -f $PID_DIR/tunnel.pid ]]; then
-    echo "Tunnel is already running"
+    say ""Tunnel is already running""
     exit 1
   fi
 
@@ -129,10 +129,10 @@ start_tunneling() {
 
   nohup su - byedpi -s /bin/bash -c "$BIN_DIR/ciadpi $ciadpi_args" \
     >$LOG_DIR/server.log 2>&1 &
-  echo $! >$PID_DIR/server.pid
+  say "$! >$PID_DIR/server.pid"
   nohup $BIN_DIR/hev-socks5-tunnel $CONF_DIR/hev-socks5-tunnel.yaml \
     >$LOG_DIR/tunnel.log 2>&1 &
-  echo $! >$PID_DIR/tunnel.pid
+  say "$! >$PID_DIR/tunnel.pid"
 
   while true; do
     sleep 0.2
@@ -140,7 +140,7 @@ start_tunneling() {
       break
     fi
 
-    echo "Waiting for tunnel interface..."
+    say ""Waiting for tunnel interface...""
   done
 
   user_id=$(id -u byedpi)
@@ -151,12 +151,12 @@ start_tunneling() {
   ip route add default via $gateway_addr dev $nic_name metric 50 table 110
   ip route add default via 172.20.0.1 dev byedpi-tun metric 1
 
-  echo "Successfully started the full traffic tunneling"
+  say ""Successfully started the full traffic tunneling""
 }
 
 stop_tunneling() {
   if [[ ! -f $PID_DIR/tunnel.pid ]]; then
-    echo "Tunnel is not running"
+    say ""Tunnel is not running""
     exit 1
   fi
 
@@ -173,7 +173,7 @@ stop_tunneling() {
 
   rm -rf "$PID_DIR" || true
 
-  echo "Successfully stopped the tunneling"
+  say ""Successfully stopped the tunneling""
 }
 
 show_tunneling_status() {
@@ -221,10 +221,10 @@ change_profile() {
     local profile_file="$CONF_DIR/profiles/${profile}.conf"
     
     if [[ -f "$profile_file" ]]; then
-      echo "$profile profili seçildi."
+      say ""$profile profili seçildi.""
     else
-      echo "Hata: '$1' profili bulunamadı!"
-      echo "Mevcut profiller:"
+      say ""Hata: '$1' profili bulunamadı!""
+      say ""Mevcut profiller:""
       ls "$CONF_DIR/profiles/"*.conf 2>/dev/null | xargs -n 1 basename | sed 's/\.conf$//'
       if [[ "$was_running" == true ]]; then
         start_tunneling
@@ -233,7 +233,7 @@ change_profile() {
     fi
   else
     echo
-    echo "Mevcut profiller:"
+    say ""Mevcut profiller:""
     echo
     
     local profiles_dir="$CONF_DIR/profiles"
@@ -247,24 +247,24 @@ change_profile() {
           profile_files+=("$profile_file")
           profile_name=$(basename "$profile_file" .conf)
           profile_names+=("$profile_name")
-          echo "$counter - $profile_name"
+          say ""$counter - $profile_name""
           
           local name description
           name=$(grep -E "^# Profile Name:" "$profile_file" 2>/dev/null | sed 's/^# Profile Name: *//' | xargs || echo "")
           description=$(grep -E "^# Description:" "$profile_file" 2>/dev/null | sed 's/^# Description: *//' | xargs || echo "")
           
           if [[ -n "$name" ]]; then
-            echo "    İsim: $name"
+            say ""    İsim: $name""
           fi
           if [[ -n "$description" ]]; then
-            echo "    Açıklama: $description"
+            say ""    Açıklama: $description""
           fi
           echo
           ((counter++))
         fi
       done
     else
-      echo "Hata: Profil dizini bulunamadı: $profiles_dir"
+      say ""Hata: Profil dizini bulunamadı: $profiles_dir""
       if [[ "$was_running" == true ]]; then
         start_tunneling
       fi
@@ -272,7 +272,7 @@ change_profile() {
     fi
     
     if [[ ${#profile_files[@]} -eq 0 ]]; then
-      echo "Hata: Hiç profil bulunamadı!"
+      say ""Hata: Hiç profil bulunamadı!""
       if [[ "$was_running" == true ]]; then
         start_tunneling
       fi
@@ -282,23 +282,23 @@ change_profile() {
     read -p "Profil seçiminiz (1-${#profile_files[@]}): " profile_secim
 
     while [[ ! "$profile_secim" =~ ^[0-9]+$ ]] || [[ "$profile_secim" -lt 1 ]] || [[ "$profile_secim" -gt "${#profile_files[@]}" ]]; do
-      echo "Lütfen geçerli bir seçim yapın (1-${#profile_files[@]})."
+      say ""Lütfen geçerli bir seçim yapın (1-${#profile_files[@]}).""
       read -p "Profil seçiminiz (1-${#profile_files[@]}): " profile_secim
     done
     
     profile="${profile_names[$((profile_secim-1))]}"
-    echo "${profile_names[$((profile_secim-1))]} profili seçildi."
+    say ""${profile_names[$((profile_secim-1))]} profili seçildi.""
   fi
 
   local profile_file="$CONF_DIR/profiles/${profile}.conf"
   local target_file="$CONF_DIR/desync.conf"
 
   if [[ -f "$profile_file" ]]; then
-    echo "Profil uygulanıyor: $profile"
+    say ""Profil uygulanıyor: $profile""
     cp "$profile_file" "$target_file"
-    echo "Profil başarıyla uygulandı: $profile"
+    say ""Profil başarıyla uygulandı: $profile""
   else
-    echo "HATA: $profile_file bulunamadı!"
+    say ""HATA: $profile_file bulunamadı!""
     if [[ "$was_running" == true ]]; then
       start_tunneling
     fi
@@ -306,7 +306,7 @@ change_profile() {
   fi
 
   if [[ "$was_running" == true ]]; then
-    echo "Tunnel yeniden başlatılıyor..."
+    say ""Tunnel yeniden başlatılıyor...""
     start_tunneling
   fi
 }
@@ -322,8 +322,9 @@ zenity)
   cmd_zenity
   ;;
 *)
-  echo "Invalid argument $1"
-  echo "Use \"help\" command."
+  say ""Invalid argument $1""
+  say ""Use \"help\" command.""
   exit 1
   ;;
 esac
+
